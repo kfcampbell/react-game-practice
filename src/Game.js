@@ -22,7 +22,11 @@ class Game extends React.Component {
 
     componentDidMount() {
         if(this.props.autoPlay) {
+            console.log('autoplay on');
             this.startGame();
+        }
+        else {
+            console.log('autoplay off');
         }
     }
 
@@ -53,7 +57,7 @@ class Game extends React.Component {
             this.intervalId = setInterval(() => {
                 this.setState((prevState) => {
                     const newRemainingSeconds = prevState.remainingSeconds - 1;
-                    if (newRemainingSeconds <= 0) {
+                    if (newRemainingSeconds < 0) {
                         clearInterval(this.intervalId);
                         return { gameStatus: 'lost', remainngSeconds: 0 };
                     }
@@ -97,7 +101,7 @@ class Game extends React.Component {
         return (
             <div className="game">
                 <div className="help">
-                    Pick {this.props.challengeSize} numbers that sum to the target in {this.state.remainingSeconds} seconds
+                    Pick {this.props.answerSize} numbers (or fewer) that sum to the target in {this.state.remainingSeconds} seconds
                 </div>
                 <Target
                     backgroundColor={Game.colors[this.state.gameStatus]}
