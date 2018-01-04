@@ -1,4 +1,3 @@
-// TARGET SUM - Starting Template
 import _ from 'lodash';
 import React from 'react';
 import Number from './Number';
@@ -123,7 +122,7 @@ class Game extends React.Component {
                             <Timer initialValue={this.state.remainingSeconds} />
                         )}
                     {['won', 'lost'].includes(this.state.gameStatus) && (
-                        <button onClick={this.props.onPlayAgain}>Play Again</button>
+                        <button onClick={this.props.onPlayAgain(this.state.gameStatus === 'won')}>Play Again</button>
                     )}
                 </div>
             </div>

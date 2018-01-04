@@ -18,6 +18,14 @@
   display: inline-block;
 }
 
+.high-score-counter {
+  border: thin solid #999;
+  width: 150px;
+  font-size: 45px;
+  text-align: center;
+  display: inline-block;
+}
+
 .challenge-numbers {
   width: 100%;
   margin: 10px auto;
