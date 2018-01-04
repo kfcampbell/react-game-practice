@@ -1,6 +1,6 @@
 import React from 'react';
 
-class Number extends React.Component {
+class Number extends React.PureComponent {
 
     handleClick = () => {
         if(this.props.clickable) {
