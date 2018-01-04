@@ -18,6 +18,16 @@ class Game extends React.Component {
             remainingSeconds: this.props.initialSeconds,
             selectedIds: []
         };
+    };
+
+    componentDidMount() {
+        if(this.props.autoPlay) {
+            this.startGame();
+        }
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.intervalId);
     }
 
     static colors = {
@@ -25,7 +35,7 @@ class Game extends React.Component {
         playing: 'deepskyblue',
         won: 'lightgreen',
         lost: 'lightcoral'
-    }; 
+    };
 
     challengeNumbers = Array.from({ length: this.props.challengeSize })
         .map(() => randomNumberBetween(...this.props.challengeRange));
@@ -33,23 +43,84 @@ class Game extends React.Component {
     target = _.sampleSize(
         this.challengeNumbers,
         this.props.challengeSize - 2
-    ).reduce((acc, curr) => acc + curr, 0)
+    ).reduce((acc, curr) => acc + curr, 0);
+
+    isNumberAvailable = (numberIndex) =>
+        this.state.selectedIds.indexOf(numberIndex) === -1;
+
+    startGame = () => {
+        this.setState({ gameStatus: 'playing' }, () => {
+            this.intervalId = setInterval(() => {
+                this.setState((prevState) => {
+                    const newRemainingSeconds = prevState.remainingSeconds - 1;
+                    if (newRemainingSeconds <= 0) {
+                        clearInterval(this.intervalId);
+                        return { gameStatus: 'lost', remainngSeconds: 0 };
+                    }
+                    return { remainingSeconds: newRemainingSeconds };
+                });
+            }, 1000);
+        });
+    };
+
+    selectNumber = (numberIndex) => {
+        if (this.state.gameStatus !== 'playing') {
+            return;
+        }
+        this.setState((prevState) => ({
+            selectedIds: [...prevState.selectedIds, numberIndex],
+            gameStatus: this.calcGameStatus([
+                ...prevState.selectedIds,
+                numberIndex
+            ]),
+        }),
+            () => {
+                if (this.state.gameStatus !== 'playing') {
+                    clearInterval(this.intervalId);
+                }
+            }
+        );
+    };
+
+    calcGameStatus = (selectedIds) => {
+        const sumSelected = selectedIds.reduce(
+            (acc, curr) => acc + this.challengeNumbers[curr],
+            0
+        );
+        if (sumSelected < this.target) {
+            return 'playing';
+        }
+        return sumSelected === this.target ? 'won' : 'lost';
+    };
 
     render() {
         return (
             <div className="game">
                 <div className="help">
-                    Pick {this.props.answerSize} numbers that sum to the target in {this.state.remainingSeconds} seconds
+                    Pick {this.props.challengeSize} numbers that sum to the target in {this.state.remainingSeconds} seconds
                 </div>
-                <Target value={this.target} />
+                <Target
+                    backgroundColor={Game.colors[this.state.gameStatus]}
+                    value={this.state.gameStatus === 'new' ? '?' : this.target} />
                 <div className="challenge-numbers">
-                    {this.challengeNumbers.map((value, index) => 
-                        <Number key={index} value={value} />
+                    {this.challengeNumbers.map((value, index) =>
+                        <Number
+                            clickable={this.isNumberAvailable(index)}
+                            id={index}
+                            key={index}
+                            value={this.state.gameStatus === 'new' ? '?' : value}
+                            onClick={this.selectNumber} />
                     )}
                 </div>
                 <div className="footer">
-                    <Timer initialValue={this.state.remainingSeconds} />
-                    <button>Start</button>
+                    {this.state.gameStatus === 'new' ? (
+                        <button onClick={this.startGame}>Start</button>
+                    ) : (
+                            <Timer initialValue={this.state.remainingSeconds} />
+                        )}
+                    {['won', 'lost'].includes(this.state.gameStatus) && (
+                        <button onClick={this.props.onPlayAgain}>Play Again</button>
+                    )}
                 </div>
             </div>
         );
